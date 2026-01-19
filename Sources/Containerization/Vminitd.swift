@@ -313,6 +313,15 @@ extension Vminitd: VirtualMachineAgent {
         _ = try await client.ipLinkSet(request)
     }
 
+    public func txChecksumOffload(name: String, enabled: Bool) async throws {
+        let request = Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest.with {
+            $0.interface = name
+            $0.up = true
+            $0.txChecksumOffload = enabled
+        }
+        _ = try await client.ipLinkSet(request)
+    }
+
     public func down(name: String) async throws {
         let request = Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest.with {
             $0.interface = name

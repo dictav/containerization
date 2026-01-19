@@ -87,6 +87,7 @@ public protocol VirtualMachineAgent: Sendable {
 
     // Networking
     func up(name: String, mtu: UInt32?) async throws
+    func txChecksumOffload(name: String, enabled: Bool) async throws
     func down(name: String) async throws
     func addressAdd(name: String, ipv4Address: CIDRv4) async throws
     func routeAddDefault(name: String, ipv4Gateway: IPv4Address) async throws

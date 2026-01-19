@@ -904,6 +904,18 @@ extension Initd: Com_Apple_Containerization_Sandbox_V3_SandboxContextAsyncProvid
             let session = NetlinkSession(socket: socket, log: log)
             let mtuValue: UInt32? = request.hasMtu ? request.mtu : nil
             try session.linkSet(interface: request.interface, up: request.up, mtu: mtuValue)
+
+            if request.hasTxChecksumOffload {
+                let offload = request.txChecksumOffload ? "on" : "off"
+                log.debug("setting tx-checksum-offload to \(offload) for \(request.interface)")
+                var cmd = Command("/usr/sbin/ethtool", ["-K", request.interface, "tx", offload])
+                let runner = DirectCommandRunner()
+                let sub = try runner.start(&cmd)
+                let exitCode = try await runner.wait(cmd, subscription: sub)
+                if exitCode != 0 {
+                    log.warning("failed to set tx-checksum-offload for \(request.interface), exit code \(exitCode)")
+                }
+            }
         } catch {
             log.error(
                 "ipLinkSet",
