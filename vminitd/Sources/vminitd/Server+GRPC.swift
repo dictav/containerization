@@ -1293,15 +1293,10 @@ extension Initd: Com_Apple_Containerization_Sandbox_V3_SandboxContextAsyncProvid
 
     private func disableTxChecksumOffload(interface: String) throws {
         log.info("disabling TX checksum offload", metadata: ["interface": "\(interface)"])
-        var command = Command("ethtool", arguments: ["-K", interface, "tx", "off"])
         do {
-            try command.start()
-            let status = try command.wait()
-            if status != 0 {
-                log.warning("ethtool failed with status \(status)")
-            }
+            try Syscall.disableTxChecksumOffload(interface: interface)
         } catch {
-            log.warning("failed to run ethtool: \(error)")
+            log.warning("failed to disable TX checksum offload: \(error)")
         }
     }
 

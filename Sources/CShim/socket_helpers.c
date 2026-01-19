@@ -15,6 +15,15 @@
  */
 
 #include "socket_helpers.h"
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <linux/ethtool.h>
+#include <linux/sockios.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 struct cmsghdr* CZ_CMSG_FIRSTHDR(struct msghdr *msg) {
     return CMSG_FIRSTHDR(msg);
@@ -30,4 +39,24 @@ size_t CZ_CMSG_SPACE(size_t length) {
 
 size_t CZ_CMSG_LEN(size_t length) {
     return CMSG_LEN(length);
+}
+
+int CZ_disable_tx_checksum(const char *ifname) {
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) return -1;
+
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+
+    struct ethtool_value eval;
+    eval.cmd = ETHTOOL_STXCSUM;
+    eval.data = 0; // off
+    ifr.ifr_data = (void *)&eval;
+
+    int ret = ioctl(fd, SIOCETHTOOL, &ifr);
+    int saved_errno = errno;
+    close(fd);
+    errno = saved_errno;
+    return ret;
 }

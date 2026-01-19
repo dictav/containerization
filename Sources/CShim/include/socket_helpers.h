@@ -26,4 +26,6 @@ void* CZ_CMSG_DATA(struct cmsghdr *cmsg);
 size_t CZ_CMSG_SPACE(size_t length);
 size_t CZ_CMSG_LEN(size_t length);
 
+int CZ_disable_tx_checksum(const char *ifname);
+
 #endif /* socket_helpers_h */
