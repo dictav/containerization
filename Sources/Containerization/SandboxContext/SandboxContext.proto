@@ -272,7 +272,6 @@ message IpLinkSetRequest {
   string interface = 1;
   bool up = 2;
   optional uint32 mtu = 3;
-  optional bool tx_checksum = 4;
 }
 
 message IpLinkSetResponse {}

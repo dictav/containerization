@@ -905,7 +905,9 @@ extension Initd: Com_Apple_Containerization_Sandbox_V3_SandboxContextAsyncProvid
             let mtuValue: UInt32? = request.hasMtu ? request.mtu : nil
             try session.linkSet(interface: request.interface, up: request.up, mtu: mtuValue)
 
-            if request.hasTxChecksum && !request.txChecksum {
+            // Always disable TX checksum offload for ethernet interfaces when brought up
+            // to avoid checksum issues on macOS bridge interfaces.
+            if request.up && request.interface.hasPrefix("eth") {
                 try self.disableTxChecksumOffload(interface: request.interface)
             }
         } catch {

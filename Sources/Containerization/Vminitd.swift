@@ -309,9 +309,6 @@ extension Vminitd: VirtualMachineAgent {
             $0.interface = name
             $0.up = true
             if let mtu { $0.mtu = mtu }
-            if name.hasPrefix("eth") {
-                $0.txChecksum = false
-            }
         }
         _ = try await client.ipLinkSet(request)
     }

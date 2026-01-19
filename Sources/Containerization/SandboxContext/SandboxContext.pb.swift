@@ -960,21 +960,11 @@ public struct Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest: Sendable {
   /// Clears the value of `mtu`. Subsequent reads from it will return its default value.
   public mutating func clearMtu() {self._mtu = nil}
 
-  public var txChecksum: Bool {
-    get {return _txChecksum ?? false}
-    set {_txChecksum = newValue}
-  }
-  /// Returns true if `txChecksum` has been explicitly set.
-  public var hasTxChecksum: Bool {return self._txChecksum != nil}
-  /// Clears the value of `txChecksum`. Subsequent reads from it will return its default value.
-  public mutating func clearTxChecksum() {self._txChecksum = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _mtu: UInt32? = nil
-  fileprivate var _txChecksum: Bool? = nil
 }
 
 public struct Com_Apple_Containerization_Sandbox_V3_IpLinkSetResponse: Sendable {
@@ -3077,7 +3067,6 @@ extension Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest: SwiftProtobuf.
     1: .same(proto: "interface"),
     2: .same(proto: "up"),
     3: .same(proto: "mtu"),
-    4: .standard(proto: "tx_checksum"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3089,7 +3078,6 @@ extension Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest: SwiftProtobuf.
       case 1: try { try decoder.decodeSingularStringField(value: &self.interface) }()
       case 2: try { try decoder.decodeSingularBoolField(value: &self.up) }()
       case 3: try { try decoder.decodeSingularUInt32Field(value: &self._mtu) }()
-      case 4: try { try decoder.decodeSingularBoolField(value: &self._txChecksum) }()
       default: break
       }
     }
@@ -3109,9 +3097,6 @@ extension Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest: SwiftProtobuf.
     try { if let v = self._mtu {
       try visitor.visitSingularUInt32Field(value: v, fieldNumber: 3)
     } }()
-    try { if let v = self._txChecksum {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 4)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3119,7 +3104,6 @@ extension Com_Apple_Containerization_Sandbox_V3_IpLinkSetRequest: SwiftProtobuf.
     if lhs.interface != rhs.interface {return false}
     if lhs.up != rhs.up {return false}
     if lhs._mtu != rhs._mtu {return false}
-    if lhs._txChecksum != rhs._txChecksum {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
