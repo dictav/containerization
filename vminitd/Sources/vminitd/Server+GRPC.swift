@@ -904,6 +904,10 @@ extension Initd: Com_Apple_Containerization_Sandbox_V3_SandboxContextAsyncProvid
             let session = NetlinkSession(socket: socket, log: log)
             let mtuValue: UInt32? = request.hasMtu ? request.mtu : nil
             try session.linkSet(interface: request.interface, up: request.up, mtu: mtuValue)
+
+            if request.hasTxChecksum && !request.txChecksum {
+                try self.disableTxChecksumOffload(interface: request.interface)
+            }
         } catch {
             log.error(
                 "ipLinkSet",
@@ -1282,6 +1286,20 @@ extension Initd: Com_Apple_Containerization_Sandbox_V3_SandboxContextAsyncProvid
                     $0.oomKill = events.oomKill
                 }
             }
+        }
+    }
+
+    private func disableTxChecksumOffload(interface: String) throws {
+        log.info("disabling TX checksum offload", metadata: ["interface": "\(interface)"])
+        var command = Command("ethtool", arguments: ["-K", interface, "tx", "off"])
+        do {
+            try command.start()
+            let status = try command.wait()
+            if status != 0 {
+                log.warning("ethtool failed with status \(status)")
+            }
+        } catch {
+            log.warning("failed to run ethtool: \(error)")
         }
     }
 
