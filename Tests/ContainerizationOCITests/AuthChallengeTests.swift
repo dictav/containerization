@@ -22,7 +22,7 @@ import Testing
 struct AuthChallengeTests {
     internal struct TestCase: Sendable {
         let input: String
-        let expected: AuthenticateChallenge
+        let expected: [AuthenticateChallenge]
     }
 
     private static let testCases: [TestCase] = [
@@ -30,29 +30,38 @@ struct AuthChallengeTests {
             input: """
                 Bearer realm="https://domain.io/token",service="domain.io",scope="repository:user/image:pull"
                 """,
-            expected: .init(type: "Bearer", realm: "https://domain.io/token", service: "domain.io", scope: "repository:user/image:pull", error: nil)),
+            expected: [.init(type: "Bearer", realm: "https://domain.io/token", service: "domain.io", scope: "repository:user/image:pull", error: nil)]),
         .init(
             input: """
                 Bearer realm="https://foo-bar-registry.com/auth",service="Awesome Registry"
                 """,
-            expected: .init(type: "Bearer", realm: "https://foo-bar-registry.com/auth", service: "Awesome Registry", scope: nil, error: nil)),
+            expected: [.init(type: "Bearer", realm: "https://foo-bar-registry.com/auth", service: "Awesome Registry", scope: nil, error: nil)]),
         .init(
             input: """
                 Bearer realm="users.example.com", scope="create delete"
                 """,
-            expected: .init(type: "Bearer", realm: "users.example.com", service: nil, scope: "create delete", error: nil)),
+            expected: [.init(type: "Bearer", realm: "users.example.com", service: nil, scope: "create delete", error: nil)]),
         .init(
             input: """
                 Bearer realm="https://auth.server.io/token",service="registry.server.io"
                 """,
-            expected: .init(type: "Bearer", realm: "https://auth.server.io/token", service: "registry.server.io", scope: nil, error: nil)),
-
+            expected: [.init(type: "Bearer", realm: "https://auth.server.io/token", service: "registry.server.io", scope: nil, error: nil)]),
+        .init(
+            input: """
+                Bearer realm="https://ghcr.io/token",service="ghcr.io",scope="repository:user/repo:pull", Basic realm="GitHub Package Registry"
+                """,
+            expected: [
+                .init(type: "Bearer", realm: "https://ghcr.io/token", service: "ghcr.io", scope: "repository:user/repo:pull", error: nil),
+                .init(type: "Basic", realm: "GitHub Package Registry", service: nil, scope: nil, error: nil)
+            ]),
     ]
 
     @Test(arguments: testCases)
     func parseAuthHeader(testCase: TestCase) throws {
         let challenges = RegistryClient.parseWWWAuthenticateHeaders(headers: [testCase.input])
-        #expect(challenges.count == 1)
-        #expect(challenges[0] == testCase.expected)
+        #expect(challenges.count == testCase.expected.count)
+        for i in 0..<min(challenges.count, testCase.expected.count) {
+            #expect(challenges[i] == testCase.expected[i])
+        }
     }
 }

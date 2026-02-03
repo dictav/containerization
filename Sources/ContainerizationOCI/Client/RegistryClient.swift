@@ -68,7 +68,7 @@ public final class RegistryClient: ContentClient {
         insecure: Bool = false,
         auth: Authentication? = nil,
         tlsConfiguration: TLSConfiguration? = nil,
-        logger: Logger? = nil,
+        logger: Logger? = nil
     ) throws {
         let ref = try Reference.parse(reference)
         guard let domain = ref.resolvedDomain else {
@@ -89,7 +89,7 @@ public final class RegistryClient: ContentClient {
             port: port,
             authentication: auth,
             retryOptions: Self.defaultRetryOptions,
-            tlsConfiguration: tlsConfiguration,
+            tlsConfiguration: tlsConfiguration
         )
     }
 
@@ -102,7 +102,7 @@ public final class RegistryClient: ContentClient {
         retryOptions: RetryOptions? = nil,
         bufferSize: Int = Int(4.mib()),
         tlsConfiguration: TLSConfiguration? = nil,
-        logger: Logger? = nil,
+        logger: Logger? = nil
     ) {
         var components = URLComponents()
         components.scheme = scheme

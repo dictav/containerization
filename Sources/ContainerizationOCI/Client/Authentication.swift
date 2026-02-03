@@ -21,12 +21,12 @@ public protocol Authentication: Sendable {
     func token() async throws -> String
 }
 
-/// Type representing authentication information for client to access the registry.
+/// Used for basic authentication on OCI registries.
 public struct BasicAuthentication: Authentication {
     /// The username for the authentication.
-    let username: String
+    public let username: String
     /// The password or identity token for the user.
-    let password: String
+    public let password: String
 
     public init(username: String, password: String) {
         self.username = username

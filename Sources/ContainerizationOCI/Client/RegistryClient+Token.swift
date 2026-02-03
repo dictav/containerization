@@ -175,36 +175,62 @@ extension RegistryClient {
     }
 
     internal static func parseWWWAuthenticateHeaders(headers: [String]) -> [AuthenticateChallenge] {
-        var parsed: [String: [String: String]] = [:]
-        for challenge in headers {
-            let trimmedChallenge = challenge.trimmingCharacters(in: .whitespacesAndNewlines)
-            let parts = trimmedChallenge.split(separator: " ", maxSplits: 1)
-            guard parts.count == 2 else {
-                continue
-            }
-            guard let scheme = parts.first else {
-                continue
-            }
-            var params: [String: String] = [:]
-            let header = String(parts[1])
-            let pattern = #"(\w+)="([^"]+)"#
-            let regex = try! NSRegularExpression(pattern: pattern, options: [])
-            let matches = regex.matches(in: header, options: [], range: NSRange(header.startIndex..., in: header))
-            for match in matches {
-                if let keyRange = Range(match.range(at: 1), in: header),
-                    let valueRange = Range(match.range(at: 2), in: header)
-                {
-                    let key = String(header[keyRange])
-                    let value = String(header[valueRange])
-                    params[key] = value
+        var challenges: [AuthenticateChallenge] = []
+        for header in headers {
+            let scanner = Scanner(string: header)
+            scanner.charactersToBeSkipped = nil
+            
+            while !scanner.isAtEnd {
+                _ = scanner.scanCharacters(from: .whitespaces)
+                guard let scheme = scanner.scanUpToCharacters(from: .whitespaces) else { break }
+                _ = scanner.scanCharacters(from: .whitespaces)
+                
+                var params: [String: String] = [:]
+                
+                while !scanner.isAtEnd {
+                    let beforeKeyPos = scanner.currentIndex
+                    guard let keyWithLeading = scanner.scanUpToString("=") else { break }
+                    
+                    let trimmedKey = keyWithLeading.trimmingCharacters(in: CharacterSet(charactersIn: ", ").union(.whitespaces))
+
+                    if trimmedKey.contains(" ") {
+                        // This "key" likely contains the next scheme.
+                        scanner.currentIndex = beforeKeyPos
+                        break
+                    }
+                    
+                    _ = scanner.scanString("=")
+                    
+                    let value: String
+                    if scanner.scanString("\"") != nil {
+                        value = scanner.scanUpToString("\"") ?? ""
+                        _ = scanner.scanString("\"")
+                    } else {
+                        value = scanner.scanUpToCharacters(from: CharacterSet(charactersIn: ", ").union(.whitespaces)) ?? ""
+                    }
+                    params[trimmedKey] = value
+                    
+                    _ = scanner.scanCharacters(from: .whitespaces)
+                    _ = scanner.scanString(",")
+                    _ = scanner.scanCharacters(from: .whitespaces)
+                    
+                    // Peek if next is a key or a scheme
+                    let peekPos = scanner.currentIndex
+                    if scanner.scanUpToCharacters(from: CharacterSet(charactersIn: "= ").union(.whitespaces)) != nil {
+                        _ = scanner.scanCharacters(from: .whitespaces)
+                        if scanner.scanString("=") == nil {
+                            // Next is a scheme
+                            scanner.currentIndex = peekPos
+                            break
+                        } else {
+                            // Next is a key
+                            scanner.currentIndex = peekPos
+                        }
+                    }
                 }
+                challenges.append(AuthenticateChallenge(type: scheme, values: params))
             }
-            parsed[String(scheme)] = params
         }
-        var parsedChallenges: [AuthenticateChallenge] = []
-        for (type, values) in parsed {
-            parsedChallenges.append(.init(type: type, values: values))
-        }
-        return parsedChallenges
+        return challenges
     }
 }
